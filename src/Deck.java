@@ -56,6 +56,10 @@ public class Deck
         return cardValue;
     }
 
+    void resetDeck () {
+        fillDeck();
+    }
+
     private int getRandInt (int max)
     {
         Random rand = new Random();
