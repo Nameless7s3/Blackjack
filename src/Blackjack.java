@@ -1,4 +1,3 @@
-import java.util.Random;
 import java.util.Scanner;
 
 public class Blackjack
@@ -10,8 +9,6 @@ public class Blackjack
 
     public static void main (String[] args)
     {
-        Random random = new Random();
-
         b = new Blackjack();
         players = new Playable[]{new Player("Player"), new Dealer("Dealer")};
         deck = new Deck(4,13);
@@ -24,26 +21,22 @@ public class Blackjack
     {
         launchGreeting();
 
-        int choice = -1;
+        int menuChoice = -1;
 
-        while (choice != 2)
+        while (menuChoice != 2)
         {
-            int menuChoice = Integer.parseInt(getInput("Select an option: 1: Play 2: Quit"));
+            menuChoice = Integer.parseInt(getInput("Select an option: 1: Play 2: Quit"));
 
-            switch (menuChoice)
-            {
-                case 1:
-                    mainGame();
-                    break;
-                    //play
-                case 2:
-                    System.out.println("You have quit the game.");
-                    break;
-                    //quit
-                default:
-                    System.out.println("Invalid option, choose from 1-2.");
-                    break;
-                    //invalid option
+            switch (menuChoice) {
+                case 1 -> mainGame();
+
+                //play
+                case 2 -> System.out.println("You have quit the game.");
+
+                //quit
+                default -> System.out.println("Invalid option, choose from 1-2.");
+
+                //invalid option
             }
 
         }
@@ -52,41 +45,20 @@ public class Blackjack
     void mainGame()
     {
         boolean gameRunning = true;
+        boolean dealerStanding = false;
 
-        for (Playable player: players) {
-            player.setScore(0);
-        }
+        resetGame();
 
         while(gameRunning)
         {
-            boolean dealerStanding = getDealerStand();
-
-            for (Playable player: players) {
-                player.printScore();
+            if(!dealerStanding) {
+                dealerStanding = getDealerStand();
             }
 
+            printScores();
             System.out.println();
-            int playerChoice = Integer.parseInt(getInput("Next choice? 1: Hit 2: Stand"));
-
-            switch (playerChoice) {
-                case 1: //Hit
-                    //Draw random cards for player and dealer
-                    if(!dealerStanding) {
-                        gameRunning = drawCards(2, 0);
-                    }
-                    else {
-                        gameRunning = drawCards(1,0);
-                    }
-
-                    break;
-
-                case 2:
-                    if(!dealerStanding) {
-                        drawCards(2, 1);
-                    }
-                    gameRunning = false;
-                    break;
-            }
+            //Get player's next choice
+            gameRunning = getPlayerNextChoice(dealerStanding);
 
             players[1] = updateDealerStandProbability((Dealer) players[1]);
         }
@@ -94,13 +66,54 @@ public class Blackjack
         //Match end
         endMatch();
 
+    }
+
+    boolean getPlayerNextChoice (boolean dealerStanding) {
+        boolean gameRunning = true;
+        int playerChoice = Integer.parseInt(getInput("Next choice? 1: Hit 2: Stand"));
+        switch (playerChoice) {
+            case 1: //Hit
+                //Draw random cards for player and dealer
+                if(!dealerStanding) {
+                    gameRunning = drawCards(2, 0);
+                }
+                else {
+                    gameRunning = drawCards(1,0);
+                }
+
+                break;
+
+            case 2:
+                if(!dealerStanding) {
+                    drawCards(2, 1);
+                }
+                gameRunning = false;
+                break;
+        }
+        return gameRunning;
+    }
+
+    void printScores () {
+        for (Playable player: players) {
+            player.printScore();
+        }
+    }
+
+    void resetGame () {
+        for (Playable player: players) {
+            player.setScore(0);
+        }
+
+        players[1] = updateDealerStandProbability((Dealer) players[1]);
+
         //Reset the deck
         deck.resetDeck();
     }
 
     boolean getDealerStand() {
         Dealer dealer = (Dealer) players[1];
-        return dealer.willStand();
+        System.out.println(dealer.getStandProbability());
+        return dealer.willStand(players[0]);
     }
 
     Dealer updateDealerStandProbability(Dealer dealer) {
@@ -167,12 +180,7 @@ public class Blackjack
     }
 
     boolean evaluateScore(Playable player) {
-        if(player.getTotalScore() < 21) {
-            return true;
-        }
-        else {
-            return false;
-        }
+        return player.getTotalScore() <=21;
     }
 
     private void launchGreeting ()
