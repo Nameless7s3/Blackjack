@@ -112,7 +112,6 @@ public class Blackjack
 
     boolean getDealerStand() {
         Dealer dealer = (Dealer) players[1];
-        System.out.println(dealer.getStandProbability());
         return dealer.willStand(players[0]);
     }
 
